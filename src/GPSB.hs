@@ -155,6 +155,14 @@ stringDiffs xs ys = accu st alg (fromList xs) 0 ys
                                    | x /= head zs ->  (s, (x, head zs)) : xs (tail zs)
                                    | otherwise -> xs (tail zs)
 
+-- string differences using cata AND indexed list
+stringDiffs' :: String -> String -> [(Int, (Char, Char))]
+stringDiffs' xs ys = cata alg (fromIList xs) ys
+  where
+    alg INilF = \zs -> []
+    alg (IConsF ix x xs) = \zs -> if | null zs -> []
+                                     | x /= head zs -> (ix, (x, head zs)) : xs (tail zs)
+                                     | otherwise -> xs (tail zs)
 -- Last index of zero
 -- note: this is much nicer with Maybe
 lastIndexZero :: [Int] -> Int
@@ -166,6 +174,13 @@ lastIndexZero xs = accu st alg (fromList xs) 0
     alg NilF s = -1
     alg (ConsF x xs) s = if x == 0 && xs == -1 then s else xs
 
+-- Last index of zero with cata and indexed list
+lastIndexZero' :: [Int] -> Int
+lastIndexZero' xs = cata alg (fromIList xs)
+  where
+    alg INilF = -1
+    alg (IConsF ix x xs) = if x == 0 && xs == -1 then ix else xs
+
 -- Vector Average
 vecAvg :: [Double] -> Double
 vecAvg xs = accu st alg (fromList xs) (0.0, 0.0)
@@ -175,6 +190,13 @@ vecAvg xs = accu st alg (fromList xs) (0.0, 0.0)
     alg NilF s = uncurry (/) s
     alg (ConsF x xs) s = xs
 
+-- vector average with cata allowing a post-process function
+-- of type Double -> Double
+vecAvg' :: [Double] -> Double
+vecAvg' xs = (/ length' xs) $ cata alg (fromList xs)
+  where
+    alg NilF = 0
+    alg (ConsF x xs) = x + xs
 
 -- X-word lines
 xWordLines :: Int -> String -> String
@@ -188,6 +210,18 @@ xWordLines n xs = accu st alg (fromList xs) 1
     alg (ConsF x xs) s = if | x == ' ' && mod s n == 0 -> '\n' : xs
                             | x == '\n' && mod s n /= 0 -> ' ' : xs
                             | otherwise -> x : xs
+
+-- x-words lines allowing pre-processing of type String -> [String]
+-- (f a -> f (f a))
+-- and using indexed list
+xWordLines' :: Int -> String -> String
+xWordLines' n xs = let xs' = words xs
+                    in cata alg (fromIList xs')
+  where
+    alg INilF = ""
+    alg (IConsF ix x xs) 
+       | mod (ix+1) n == (n-1) = x <> ('\n' : xs)
+       | otherwise = x <> (' ' : xs)
 
 -- pig latin
 pigLatin :: [Char] -> [Char]
@@ -205,6 +239,17 @@ pigLatin cs = accu st alg (fromList cs) ("", "")
             ))
     alg NilF (s1, s2) = s1 <> s2
     alg (ConsF x xs) s = xs
+
+-- pig latin using cata allowing pre-process function
+-- of type String -> [String] (f a -> f (f a))
+pigLatin' :: String -> String
+pigLatin' xs = let xs' = words xs
+                in cata alg (fromList xs')
+  where
+    alg NilF = ""
+    alg (ConsF x xs)
+       | head x `elem` "AEIOUaeiou" = x <> "ay" <> xs
+       | otherwise = tail x <> (head x : "ay") <> xs
 
 -- Word stats, split into three for clarity
 wordStats :: String -> (M.Map Int Int, Int, Double)
@@ -235,6 +280,29 @@ avgLineLen xs = accu st alg (fromList xs) (0.0, 0.0, 0.0)
     alg NilF (lineLen, totLines, sumLen) = if lineLen == 0 then (if totLines == 0 then 0 else sumLen / totLines) else (sumLen + lineLen) / (totLines + 1)
     alg (ConsF x xs) (lineLen, totLines, sumLen) = xs
 
+-- Word stats, split into three for clarity allowing a single pre-processing function
+-- of type String -> [String] (f a -> f (f a)) and post-processing of type b -> b
+wordDist' :: String -> M.Map Int Int
+wordDist' xs = let xs' = words xs
+                in cata alg (fromList xs')
+  where
+   alg NilF = M.empty
+   alg (ConsF x xs) = M.insertWith (+) (length x) 1 xs
+
+lineCount' :: String -> Int
+lineCount' xs = let xs' = lines xs
+                 in cata alg (fromList xs')
+  where
+    alg NilF = 0
+    alg (ConsF x xs) = 1 + xs
+
+avgLineLen' :: String -> Double
+avgLineLen' xs = let xs' = lines xs
+                  in (/ length' xs') $ cata alg (fromList xs')
+  where
+    alg NilF = 0
+    alg (ConsF x xs) = length' x + xs
+
 -- Checksum
 checksum :: String -> Char
 checksum xs = accu st alg (fromList xs) 0
@@ -244,6 +312,19 @@ checksum xs = accu st alg (fromList xs) 0
 
     alg NilF s = toEnum (fromEnum s + 32) -- 32 = fromEnum ' '
     alg (ConsF x xs) s = xs
+
+-- checksum using cata with a post-processing function
+-- of type Char -> Char (b -> b)
+checksum' :: String -> Char
+checksum' xs = addChars ' ' $ cata alg (fromList xs)
+  where
+   alg NilF = '\0'
+   alg (ConsF x xs) = modChar (addChars x xs) 64
+
+   addChars :: Char -> Char -> Char
+   addChars c1 c2 = toEnum (fromEnum c1 + fromEnum c2)
+   modChar :: Char -> Int -> Char
+   modChar c n = toEnum (fromEnum c `mod` n)
 
 -- * Anamorphisms
 
@@ -289,6 +370,16 @@ evenSquares n = hylo alg coalg n
       | seed^2 <= 1 = NilF
       | otherwise   = ConsF (seed ^ 2) (seed - 1 - (1 - mod seed 2))
 
+-- Even squares using ana if we allow the argument
+-- within scope of coalg and not using arg as the initial seed
+-- reverse is not actually needed, just to make testing easier.
+evenSquares' :: Int -> [Int]
+evenSquares' n = reverse . toList $ ana coalg 2
+  where
+    coalg seed
+      | seed^2 >= n = NilF
+      | otherwise = ConsF (seed^2) (seed + 2)
+
 -- Wallis Pi
 wallisPi :: Int -> Double
 wallisPi = hylo alg coalg
@@ -316,3 +407,5 @@ snoc x xs = xs <> [x]
 
 -- returns True if a char is one of the leters of the alphabet
 isLetter c = c `elem` (['A' .. 'Z'] <> ['a' .. 'z'])
+
+length' = fromIntegral . length

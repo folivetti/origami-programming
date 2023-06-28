@@ -1,0 +1,23 @@
+catamorphism:
+f a -> f b
+f a -> (f b, c)
+f a -> b (accu)
+f a -> f a -> b
+f a -> f a -> f b (accu)
+f a b -> a -> b
+
+accu:
+return index
+fold with aggregation function (alg just needs to evolve the NilF case)
+Int -> f a -> b  (nth element)
+apply to future elements
+grouping of elements
+
+
+ana:
+a -> f b
+c -> d -> ... -> a -> f b (every parameter is a global value)
+
+hylo:
+a -> b
+a -> f b if it involves filtering the results

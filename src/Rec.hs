@@ -2,6 +2,7 @@
 module Rec where
 
 data ListF a b = NilF | ConsF a b deriving Functor
+data IListF a b = INilF | IConsF Int a b deriving Functor
 data NatF a = ZeroF | SuccF a deriving Functor
 data StreamF a b = StreamF a b deriving Functor
 data TreeF a b = LeafF | NodeF b a b deriving Functor
@@ -71,6 +72,8 @@ chrono alg coalg = extract . hylo alg' coalg' . Ret
     coalg' (Ret a) = coalg a
     coalg' (Op k) = k
 
+-- * Conversion functions
+
 fromList :: [a] -> Fix (ListF a)
 fromList [] = Fix NilF
 fromList (x:xs) = Fix (ConsF x (fromList xs))
@@ -78,6 +81,16 @@ fromList (x:xs) = Fix (ConsF x (fromList xs))
 toList :: Fix (ListF a) -> [a]
 toList (Fix NilF) = []
 toList (Fix (ConsF x xs)) = x : toList xs
+
+fromIList :: [a] -> Fix (IListF a)
+fromIList xs = go (zip [0..] xs)
+  where
+    go [] = Fix INilF
+    go ((ix,x):xs) = Fix (IConsF ix x (go xs))
+
+toIList :: Fix (IListF a) -> [a]
+toIList (Fix INilF) = []
+toIList (Fix (IConsF ix x xs)) = x : toIList xs
 
 stream2list :: StreamF a [a] -> [a]
 stream2list (StreamF x y) = x : y

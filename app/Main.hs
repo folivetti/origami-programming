@@ -18,7 +18,7 @@ prop_replaceSpaceCount xs = replaceSpaceCount xs == R1.replaceSpaceCount xs
 
 prop_stringDiffs xs ys = stringDiffs xs ys == R1.stringDiffs xs ys
 
-prop_evenSquares x = evenSquares (getPositive x) == R1.evenSquares (getPositive x)
+prop_evenSquares x = evenSquares' (getPositive x) == R1.evenSquares (getPositive x)
 
 prop_wallisPi x = wallisPi (getPositive x) == R1.wallisPi (getPositive x)
 
