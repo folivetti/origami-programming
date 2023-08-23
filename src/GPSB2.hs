@@ -5,31 +5,30 @@ module GPSB2 where
 import Data.Char ( digitToInt, toUpper )
 import Data.List ( tails, findIndex )
 import Rec
+import Debug.Trace ( trace )
+
+basement :: [Int] -> Maybe Int
+basement xs = cata alg2 $ cata alg (fromIList xs)
+  where
+    alg2 INilF = Nothing
+    alg2 (IConsF ix x xs) = if x < 0 then Just ix else xs
+
+    alg INilF = Fix INilF
+    alg (IConsF ix x xs) = case xs of
+                              Fix INilF -> icons x xs
+                              Fix (IConsF iy y ys) -> icons (x+y) xs 
 {-
-basement :: [Int] -> Int
-basement xs = fst $ accu st alg (fromList xs) 0
-  where
-      st NilF _ = NilF
-      st (ConsF x ys) s = ConsF x (ys, s+1)
-
-      alg NilF s = (s, 0)
-      alg (ConsF x (ix, acc)) s = if x + acc < 0 then (s, x + acc) else (ix, x + acc)
-
-bouncingBalls :: Double -> Double -> Int -> Double
-bouncingBalls fstHeight sndHeight n = hylo alg coalg fstHeight
-    where 
-        bounciness = (sndHeight / fstHeight)
-        coalg x = ConsF x (x * bounciness)
-        alg NilF = 0
-        alg (ConsF x xs) = 2*x + xs
-
 bowling :: String -> Int
-bowling = undefined
+bowling = cata alg . fromList
   where
+    alg NilF = 0 
+    alg (ConsF x xs) = undefined
+
     charToScore 'X' = 10
     charToScore '/' = 10
     charToScore '-' = 0
     charToScore c = digitToInt c
+-}
 
 camelCase :: String -> String
 camelCase xs = accu st alg (fromList xs) ("", False)
@@ -44,7 +43,7 @@ camelCase xs = accu st alg (fromList xs) ("", False)
           ))
     alg NilF s = fst s
     alg (ConsF x xs) s = fst s <> xs
-
+{-
 coinSums :: Int -> (Int, [Int])
 coinSums n = hylo alg coalg n
   where
@@ -110,19 +109,17 @@ squareDigits = reverse . concat . toList . ana coalg
 subsCipher :: String -> String -> String -> String
 subsCipher = undefined
 
+-}
+
 twitter :: String -> String
-twitter xs = accu st alg (fromList xs) 0
+twitter xs = cata alg (fromIList xs)
   where
-    st NilF _ = NilF
-    st (ConsF x xs) s = ConsF x (xs, s+1)
-    alg NilF s | s == 0 = "You didn't type anything"
-               | s > 140 = "Too many characters"
-               | otherwise = "Your tweet has " <> show s <> " characters"
-    alg (ConsF x xs) s = xs
+    alg INilF = "You didn't type anything"
+    alg (IConsF ix x xs) = if | xs == "You didn't type anything" -> if ix > 139 then xs else "Your tweet has " <> show (ix + 1) <> " characters"
+                              | otherwise -> xs
 
 vecDistance :: [Double] -> [Double] -> Double
 vecDistance xs ys = sqrt $ cata alg (fromList xs) ys
   where
     alg NilF ys = 0
-    alg (ConsF x xs) ys = (x - head ys)^2 + xs (tail ys)
--}
+    alg (ConsF x xs) ys = if null ys then xs [] else ((x - head ys)^2 + xs (tail ys))

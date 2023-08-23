@@ -92,6 +92,9 @@ toIList :: Fix (IListF a) -> [a]
 toIList (Fix INilF) = []
 toIList (Fix (IConsF ix x xs)) = x : toIList xs
 
+icons :: a -> Fix (IListF a) -> Fix (IListF a)
+icons x xs = fromIList (x : toIList xs)
+
 stream2list :: StreamF a [a] -> [a]
 stream2list (StreamF x y) = x : y
 

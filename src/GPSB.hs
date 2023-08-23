@@ -97,7 +97,7 @@ superAnagram :: String -> (String -> Bool)
 superAnagram = cata alg . fromList
   where
     alg NilF = \ys -> True -- ys is a super anagram of an empty list
-    alg (ConsF x xs) = \ys -> (not.null) ys && x `elem` ys && xs (delete x ys) -- ys must still have a char, and it must contain x, and it must be true for ys after removing x
+    alg (ConsF x xs) = \ys ->  x `elem` ys && xs (delete x ys) -- ys must still have a char, and it must contain x, and it must be true for ys after removing x
 
 -- vectors summed
 sumOfVecs :: [Int] -> ([Int] -> [Int])

@@ -19,21 +19,15 @@ import Data.List ( tails, findIndex )
 import qualified Data.Map.Strict as M
 import Rec
 
+-- basement
 basement :: [Int] -> Maybe Int
-basement = go 0 -- findIndex (<0) $ map sum $ tails xs
-  where
-    go ix [] = Nothing
-    go ix xs = if sum xs < 0
-                 then max (Just ix) (go (ix + 1) (tail xs))
-                 else go (ix + 1) (tail xs)
+basement = findIndex (<0) . map sum . tails
 
+-- bouncing balls *
 bouncingBalls :: Double -> Double -> Int -> Double
-bouncingBalls fstHeight sndHeight n = go n fstHeight
+bouncingBalls h1 h2 n = h1 * (1 + 2 * b * (if b == 1 then b^(n-1) else (b^n - 1)/(b - 1))) 
     where 
-      bounciness = (sndHeight / fstHeight)
-      go 0 x = x
-      go m x = x + x*bounciness + go (m+1) (x * bounciness) 
-    -- (subtract fstHeight) $ (*2) $ sum $ take n $ iterate (* bounciness) fstHeight 
+        b = (h2 / h1)
 
 bowling :: String -> Int
 bowling = go
@@ -48,6 +42,10 @@ bowling = go
                   | c2 == '/' = 10 + charToScore (head cs) + go cs
                   | otherwise = charToScore c1 + charToScore c2 + go cs
 
+{-
+X/ = 20
+X23 = 10 + 2 + 3 + 2 + 3
+-}
 camelCase :: String -> String
 camelCase = go ""
   where

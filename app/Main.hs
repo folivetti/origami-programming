@@ -1,7 +1,9 @@
 {-# LANGUAGE TemplateHaskell #-}
 import Test.QuickCheck
 import GPSB
+import GPSB2
 import qualified Reference.GPSB as R1
+import qualified Reference.GPSB2 as R2
 
 prop_forLoopIndex :: Property
 prop_forLoopIndex = forAll (choose (-1000, 1000)) $ \start ->
@@ -64,6 +66,13 @@ prop_grade = forAll (choose (6, 10)) $ \a ->
                grade [(a, 'A'), (b, 'B'), (c, 'C'), (d, 'D')] n == R1.grade [(a, 'A'), (b, 'B'), (c, 'C'), (d, 'D')] n
 
 prop_syllables x = syllables x == R1.syllables x
+
+-- GPSB 2
+prop_basement x = basement x == R2.basement x
+
+prop_vecDistance xs ys = abs (vecDistance xs ys - R2.vecDistance xs ys) < 1e-6
+
+prop_twitter xs = twitter xs == R2.twitter xs
 
 return []
 check = $quickCheckAll
