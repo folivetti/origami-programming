@@ -367,7 +367,7 @@ evenSquares n = hylo alg coalg n
     alg NilF = []
     alg (ConsF x xs) = if x >= n then xs else x : xs
     coalg seed
-      | seed^2 <= 1 = NilF
+      | seed <= 1 = NilF
       | otherwise   = ConsF (seed ^ 2) (seed - 1 - (1 - mod seed 2))
 
 -- Even squares using ana if we allow the argument
