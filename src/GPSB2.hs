@@ -17,18 +17,42 @@ basement xs = cata alg2 $ cata alg (fromIList xs)
     alg (IConsF ix x xs) = case xs of
                               Fix INilF -> icons x xs
                               Fix (IConsF iy y ys) -> icons (x+y) xs 
-{-
-bowling :: String -> Int
-bowling = cata alg . fromList
-  where
-    alg NilF = 0 
-    alg (ConsF x xs) = undefined
 
+bowling :: String -> Int
+bowling = histo alg . fromList
+  where
+    alg :: ListF Char (Cofree (ListF Char) Int) -> Int
+    alg NilF = 0 
+    alg (ConsF x table) = case x of
+                            'X' -> 10 + if lenCof table <= 2
+                                        then getBonusX table
+                                        else extract table + getBonusX table
+                            '/' -> 10 + if lenCof table <= 1 
+                                          then getBonusS table
+                                          else extract table + getBonusS table
+                            c   -> charToScore c + extract table - correctS (charToScore c) table
+
+    lenCof (_ :< NilF) = 0
+    lenCof (_ :< (ConsF _ table)) = 1 + lenCof table
+
+    getBonusX :: Cofree (ListF Char) Int -> Int
+    getBonusX (score :< NilF) = 0
+    getBonusX (score :< (ConsF '/' table)) = 10
+    getBonusX (score :< (ConsF x table)) = charToScore x + getBonusS table - correctS (charToScore x) table
+
+    getBonusS (score :< NilF) = 0
+    getBonusS (score :< (ConsF x table)) = charToScore x
+
+    correctS p (score :< NilF) = 0
+    correctS p (score :< (ConsF '/' table)) = p
+    correctS p _ = 0
+
+    charToScore :: Char -> Int
     charToScore 'X' = 10
     charToScore '/' = 10
     charToScore '-' = 0
     charToScore c = digitToInt c
--}
+
 
 camelCase :: String -> String
 camelCase xs = accu st alg (fromList xs) ("", False)

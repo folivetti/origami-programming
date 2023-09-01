@@ -38,9 +38,10 @@ bowling = go
     charToScore c = digitToInt c
 
     go "" = 0
-    go (c1:c2:cs) | c1 == 'X' = if c2 == '/' then 20 else (10 + charToScore c2 + charToScore (head cs)) + go (c2:cs)
-                  | c2 == '/' = 10 + charToScore (head cs) + go cs
-                  | otherwise = charToScore c1 + charToScore c2 + go cs
+    go (c1:c2:cs) 
+      | c1 == 'X' = if c2 == '/' then 20 else (10 + charToScore c2 + charToScore (head cs)) + go (c2:cs)
+      | c2 == '/' = 10 + charToScore (head cs) + go cs
+      | otherwise = charToScore c1 + charToScore c2 + go cs
 
 {-
 X/ = 20
