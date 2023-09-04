@@ -129,7 +129,10 @@ prop_twitter xs = twitter xs == R2.twitter xs
 
 prop_bowling xs = forAll (choose (0, length bowlingData - 1)) $ \ix ->
                      let (a, b) = bowlingData !! ix
-                      in trace (show (a,b,ix) <> " " <> show (bowling a)) $ bowling a == b
+                      in bowling a == b
+
+
+prop_camelcase xs = camelCase xs == R2.camelCase xs 
 
 return []
 check = $quickCheckAll

@@ -14,7 +14,7 @@
 {-# LANGUAGE TupleSections #-}
 module Reference.GPSB2 where
 
-import Data.Char (digitToInt, toUpper)
+import Data.Char (digitToInt, toUpper, toLower)
 import Data.List ( tails, findIndex )
 import qualified Data.Map.Strict as M
 import Rec
@@ -25,36 +25,46 @@ basement = findIndex (<0) . map sum . tails
 
 -- bouncing balls *
 bouncingBalls :: Double -> Double -> Int -> Double
-bouncingBalls h1 h2 n = h1 * (1 + 2 * b * (if b == 1 then b^(n-1) else (b^n - 1)/(b - 1))) 
-    where 
-        b = (h2 / h1)
+bouncingBalls h1 h2 n = h1 * (1 + 2 * b * (if b == 1 then b^(n-1) else (b^n - 1)/(b - 1)))
+    where
+        b = h2 / h1
 
 bowling :: String -> Int
-bowling = go
+bowling card = score card 10
   where
     charToScore 'X' = 10
     charToScore '/' = 10
     charToScore '-' = 0
     charToScore c = digitToInt c
 
-    go "" = 0
-    go (c1:c2:cs) 
-      | c1 == 'X' = if c2 == '/' then 20 else (10 + charToScore c2 + charToScore (head cs)) + go (c2:cs)
-      | c2 == '/' = 10 + charToScore (head cs) + go cs
-      | otherwise = charToScore c1 + charToScore c2 + go cs
+    score :: String -> Int -> Int
+    score [] _ = 0
+    score _ 0  = 0
+    score [_] _ = 0
+    score ('X':cs) n = if cs !! 1 == '/'
+                          then 20 + score cs (n - 1)
+                          else 10 + charToScore (head cs) + charToScore (cs !! 1) + score cs (n - 1)
+    score (_:'/':cs) n = 10 + charToScore (head cs) + score cs (n-1)
+    score (c1:c2:cs) n = charToScore c1 + charToScore c2 + score cs (n-1)
+
 
 {-
 X/ = 20
 X23 = 10 + 2 + 3 + 2 + 3
 -}
 camelCase :: String -> String
-camelCase = go ""
+camelCase = splitStr
   where
-    go res "" = res
-    go res ('-':c:cs) = go (snoc res (toUpper c)) cs
-    go res (c:cs) = go (snoc res c) cs
+    capitalize "" = ""
+    capitalize (x:xs) = toUpper x : map toLower xs 
 
-    snoc xs x = xs <> [x]
+    splitStr "" = ""
+    splitStr xs = let ys = takeWhile (/= '-') xs 
+                      zs = dropWhile (/= '-') xs
+                   in if null zs 
+                         then capitalize ys 
+                         else capitalize ys <> splitStr (tail zs)
+
 
 coinSums :: Int -> (Int, [Int])
 coinSums x = go x (0, []) coins
@@ -68,7 +78,7 @@ cutVector = go []
   where
     diff (xs, ys) = abs (sum xs - sum ys)
     go xs [] = (xs, [])
-    go xs ys 
+    go xs ys
       | diff (xs, ys) < diff minGo = (xs, ys)
       | otherwise = minGo
       where minGo = go (head ys : xs) (tail ys)
@@ -87,7 +97,7 @@ fizzBuzz :: Int -> [String]
 fizzBuzz n = map fb [1 .. n]
   where
     fb x | x `mod` 3 == 0 && x `mod` 5 == 0 = "FizzBuzz"
-         | x `mod` 3 == 0 = "Fizz" 
+         | x `mod` 3 == 0 = "Fizz"
          | x `mod` 5 == 0 = "Buzz"
          | otherwise = show x
 

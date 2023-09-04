@@ -2,10 +2,11 @@
 {-# language MultiWayIf #-}
 module GPSB2 where
 
-import Data.Char ( digitToInt, toUpper )
+import Data.Char ( digitToInt, toUpper, toLower )
 import Data.List ( tails, findIndex )
 import Rec
 import Debug.Trace ( trace )
+import GPSB (xWordLines)
 
 basement :: [Int] -> Maybe Int
 basement xs = cata alg2 $ cata alg (fromIList xs)
@@ -16,36 +17,31 @@ basement xs = cata alg2 $ cata alg (fromIList xs)
     alg INilF = Fix INilF
     alg (IConsF ix x xs) = case xs of
                               Fix INilF -> icons x xs
-                              Fix (IConsF iy y ys) -> icons (x+y) xs 
+                              Fix (IConsF iy y ys) -> icons (x+y) xs
 
 bowling :: String -> Int
-bowling = histo alg . fromList
+bowling = snd . histo alg . fromList . reverse
   where
-    alg :: ListF Char (Cofree (ListF Char) Int) -> Int
-    alg NilF = 0 
-    alg (ConsF x table) = case x of
-                            'X' -> 10 + if lenCof table <= 2
-                                        then getBonusX table
-                                        else extract table + getBonusX table
-                            '/' -> 10 + if lenCof table <= 1 
-                                          then getBonusS table
-                                          else extract table + getBonusS table
-                            c   -> charToScore c + extract table - correctS (charToScore c) table
+    alg NilF = (0, 0) :: (Int, Int)
+    alg (ConsF 'X' ((ix, acc) :< NilF)) = (ix + 1, acc + 10)
+    alg (ConsF x ((ix, acc) :< NilF))   = (ix, acc + charToScore x)
 
-    lenCof (_ :< NilF) = 0
-    lenCof (_ :< (ConsF _ table)) = 1 + lenCof table
-
-    getBonusX :: Cofree (ListF Char) Int -> Int
-    getBonusX (score :< NilF) = 0
-    getBonusX (score :< (ConsF '/' table)) = 10
-    getBonusX (score :< (ConsF x table)) = charToScore x + getBonusS table - correctS (charToScore x) table
-
-    getBonusS (score :< NilF) = 0
-    getBonusS (score :< (ConsF x table)) = charToScore x
-
-    correctS p (score :< NilF) = 0
-    correctS p (score :< (ConsF '/' table)) = p
-    correctS p _ = 0
+    alg (ConsF x table) =
+        let (ix, acc) = extract table
+            (iy, _) = extract (nextCF table)
+            bonusS = ix < 10 && case nextElem table of
+                       Just 'X' -> True
+                       Just '/' -> True
+                       _ -> False
+            bonusX = ix < 10 && case nextElem (nextCF table) of
+                       Just 'X' -> True
+                       c -> False
+            score  = charToScore x - if x == '/' then prevScore else 0
+            points = score + (if bonusS then score else 0) + (if bonusX then score else 0)
+            prevScore = maybe 0 charToScore (nextElem table)
+         in if x == 'X' || ix == iy
+              then (ix + 1, acc + points)
+              else (ix, acc + points)
 
     charToScore :: Char -> Int
     charToScore 'X' = 10
@@ -55,18 +51,21 @@ bowling = histo alg . fromList
 
 
 camelCase :: String -> String
-camelCase xs = accu st alg (fromList xs) ("", False)
+camelCase = histo alg . fromList
   where
-    st NilF s = NilF
-    st (ConsF x xs) (s1, s2) = ConsF x (xs, (
-            if | s2 -> [toUpper x]
-               | elem x " -_" -> ""
-               | otherwise -> [x]
-          , if | elem x " -_" -> True
-               | otherwise -> False
-          ))
-    alg NilF s = fst s
-    alg (ConsF x xs) s = fst s <> xs
+    alg NilF = ""
+    alg (ConsF x table) = let acc = extract table
+                           in if x == '-'
+                                then if null acc
+                                       then ""
+                                       else acc
+                                else if null acc 
+                                       then [toUpper x]
+                                       else case nextElem table of 
+                                              Just '-' -> toUpper x : acc 
+                                              _ -> toUpper x : toLower (head acc) : tail acc 
+
+
 {-
 coinSums :: Int -> (Int, [Int])
 coinSums n = hylo alg coalg n

@@ -18,6 +18,18 @@ data Free f a = Ret a | Op (f (Free f a))
 extract :: Cofree f a -> a
 extract (x :< _) = x
 
+nextCF :: Cofree (ListF a1) a2 -> Cofree (ListF a1) a2
+nextCF cf@(_ :< NilF) = cf
+nextCF (_ :< ConsF _ tbl) = tbl
+
+nextElem :: Cofree (ListF a1) a2 -> Maybe a1
+nextElem (_ :< NilF) = Nothing 
+nextElem (_ :< ConsF x _) = Just x 
+
+lenCF :: Cofree (ListF a) b -> Int
+lenCF (_ :< NilF) = 1
+lenCF cf = 1 + lenCF (nextCF cf)
+
 unOp :: Free f a -> f (Free f a)
 unOp (Op x) = x
 unOp _ = error "partial function unOp called on Ret"
