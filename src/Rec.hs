@@ -6,6 +6,7 @@ data IListF a b = INilF | IConsF Int a b deriving Functor
 data NatF a = ZeroF | SuccF a deriving Functor
 data StreamF a b = StreamF a b deriving Functor
 data TreeF a b = LeafF | NodeF b a b deriving Functor
+data Delay a b = Value a | Delayed b deriving Functor
 
 newtype Fix f = Fix {unfix :: f (Fix f)}
 

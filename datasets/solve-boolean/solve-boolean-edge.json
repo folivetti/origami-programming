@@ -1,0 +1,10 @@
+{"input1":"t","output1":true}
+{"input1":"f","output1":false}
+{"input1":"f&f","output1":false}
+{"input1":"f&t","output1":false}
+{"input1":"t&f","output1":false}
+{"input1":"t&t","output1":true}
+{"input1":"f|f","output1":false}
+{"input1":"f|t","output1":true}
+{"input1":"t|f","output1":true}
+{"input1":"t|t","output1":true}

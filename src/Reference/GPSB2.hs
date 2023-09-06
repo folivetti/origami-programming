@@ -90,6 +90,7 @@ diceGame n m = 1.0 - (fromIntegral m + 1) / (2 * fromIntegral n)
 findPair :: [Int] -> Int -> (Int, Int)
 findPair xs n = go xs
   where
+    go [] = (0, 0)
     go (x:xs) = if (n - x) `elem` xs
                   then (x, n - x)
                   else go xs
@@ -119,7 +120,7 @@ indicesSubStr css target = go 0 css
                 else go (ix + 1) (tail xs)
 
 leaders :: [Int] -> [Int]
-leaders = go []
+leaders = reverse . go []
   where
     go acc [] = acc
     go acc (x:xs) = if all (<=x) xs then go (x:acc) xs else go acc xs
@@ -136,7 +137,8 @@ masterMind :: String -> String -> (Int, Int)
 masterMind code guess = (sum $ [1 | (x,y) <- zip code guess, x==y], sum $ [1 | x <- guess, elem x code])
 
 middleChar :: String -> String
-middleChar xs | even n = [xs !! ix, xs !! (ix+1)]
+middleChar "" = ""
+middleChar xs | even n = [xs !! (ix-1), xs !! ix]
               | odd  n = [xs !! ix]
   where
     n = length xs
@@ -146,6 +148,7 @@ pairedDigits :: String -> Int
 pairedDigits = go
   where
     go "" = 0
+    go [c] = 0
     go (c1:c2:cs) | c1 == c2 = digitToInt c1 + go (c2:cs)
                   | otherwise = go (c2:cs)
 
@@ -156,7 +159,7 @@ snowDay :: Int -> Double -> Double -> Double -> Double
 snowDay hours snow rate melt = go hours snow
   where
     go 0 s = s
-    go n s = go (n-1) ((s + rate) * melt)
+    go n s = go (n-1) ((s + rate) * melt) -- (s * melt + rate * melt) * melt + rate * melt
 
 solveBool :: String -> Bool
 solveBool = go

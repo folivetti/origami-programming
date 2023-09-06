@@ -4,6 +4,7 @@ import GPSB
 import GPSB2
 import qualified Reference.GPSB as R1
 import qualified Reference.GPSB2 as R2
+import Data.List ( permutations )
 
 import Debug.Trace ( trace )
 
@@ -57,6 +58,49 @@ bowlingData = [("-66-9--86-5-9-36X4-",76),
                 ("447-6/-37/9/3/532/61",106), 
                 ("-981339-71XXX316-",118), 
                 ("456-9/7/273-62X8118",101)]
+subsStrdata = [["a", "5"],
+     ["!", "!"],
+     ["r", "nm,xcnwqnd@#$fwkdjn3"],
+     ["hi", "hihihihihihihihihihi"],
+     ["############", "#"],
+     ["GGGGGGGGGGGGGGGGGGGG", "G"],
+     ["$$$$$$$$$$$$$$$$$$$$", "$$"],
+     ["33333333333333333333", "333"],
+     ["hahahahahahahahahaha", "haha"],
+     ["GCTGCTGCTGCTGCTGCTGC", "GCTGC"],
+     ["bbbbbbb(bb#bbbbbbbb", "bbb"],
+     ["fa la la la la, la ", "la"],
+     ["start and and with s", "s"],
+     ["tomato", "tom"],
+     ["tomatotomatotomato", "tom"],
+     ["tomatotomatotomato", "to"],
+     ["will be zero", "this will be zero"],
+     ["APPEAR twice APPEAR", "APPEAR"],
+     ["a few ending <3<3<3", "<3"],
+     ["middle of this one", "of"]]
+
+masterMindData = [["RRRR", "RRRR"],
+          ["BOYG", "GYOB"],
+          ["WYYW", "BBOG"],
+          ["GGGB", "BGGG"],
+          ["BBBB", "OOOO"],
+          ["BWYG", "YWBG"],
+          ["RGOW", "OGWR"],
+          ["YGGB", "GYGB"],
+          ["YGGB", "GYBG"],
+          ["GOGY", "OGGO"],
+          ["GOGR", "GOYR"],
+          ["YMOO", "YMRG"],
+          ["GROY", "BGOW"],
+          ["GGYG", "BYBB"],
+          ["WWWW", "BYWR"],
+          ["RBYO", "BWBB"],
+          ["RBRB", "ORBY"],
+          ["WORR", "BYOW"],
+          ["YOWW", "YWWR"],
+          ["BRYB", "WOGG"]]
+
+booleanData = ["t|t&f|t&t", "t|t&f|f|t|f&t&f&f|f|t|f|f|f|t&f&t&t|f", "t|t|f|f&t|f|f|t&t&t&t|t&f|f&f&t|t|f", "f|t|f|f|t&f", "f&f&t|t|t|f", "t|f|t|f&f&t&f&t&t|f", "t|t&t|t|f|f&t&t|t|f|t&t|f|t&f&t|f", "t|t&t&f&f|t&t&t&t&f", "t&t|t&f&f", "t&t&f|f&f&t|f|f&f&t", "t|t|f&t&f|f", "t&f&f|f&f|f|t|f&t|f&t|f", "t|t&f|t&t|t&f&f&t", "t&t", "t&f|f|t|t|f|f&t|t&f", "t&f&t|t", "t|t|f&f|f&t&f|t", "t|t|t&f&t&t", "f&f|f&f|f&t&f", "t&f|t&f|f&f|f&t|f|t|t|f|f|t&t&t&f&f&t", "f&f", "f&f|t|f&t|f|t&f&f&t|t&f&f&f&t|t", "t&t", "f&f|f|t&f&f&f|f|t|f|t&f|f|f&t&t|f&t", "t&f|f&t&f&t|f&t&t|f|f&f|t&t|f&f", "f&f&t&t&f&f&t|t", "t&f|t|t&t|t|f|t|t&t&f|t&t|t|t|t&t|f", "f|f|f", "t&f", "t|f&t|f|t&t", "t&f|t&f&f&f|f|f", "f|f|f|t|f|t|f|f|t&t&f|t&f&f&t&t", "t|f", "t&f|f|f&t|t&t&f|f&t&f&f|t|t|f|f&f", "t|t|f|t|t&t|t&f|f|f&t&t|f|f|t|t|t|f&t&f", "t&f|t&f|t&t&f&t|t|f|f|f&f", "t&t", "f&f&f&f&t|f", "t|t&f&t&f|t|f|f|t&f|f&f|t|t", "f&f|t&f|t", "f|t|f&f|t&t|f&f", "t|f&t&f&f|t&f&f&f|f&t&f|f|f|t", "f&t&t|t|t&t&f|f&f&t&f|f|f|f|f", "f|t|t|t|t|t&f&f|f|t&t&f|t&t&f&t|f&f", "f&t|t&t&f&f|f&f|t&t|f&t|t|f", "t&f&t|f|f|f|f|f|t&f&t|f|f&t|t|t&t&t", "t|t|t&f&f|f", "f|f|f&f|t&f&f|t&t&t|t|t|t&f", "f&t&f&t|f|f|t", "t|t|f&t|f&t&f|f|t|f&f|f&t|f&t", "t&t", "t|f&t|f|t&t|t|f|t&t|t|t|t|t&t&t|t|f|t", "f|f&t|t&t|t|t&t|t&f|t&f|t&f|f|f&f", "f|f|t&t|f|f|f&f|t|f&t", "t|t&f&f&f|f|t&f&t&f&t|f|f&f|t|t|t|f", "t|t&f|f|f|f&f|t|f|t|f|f|t|t|f", "t|t|f|t", "t&f&t|f|f&f&t&t|t&t", "t&t|f|f&t&f|f|f|t&f&t|t|t&t&f&t&f&f&t", "f&f", "t|f|f&f|f|t|f|t&f|f&f|f|f&f|f|f&f", "t&f|t", "t|t|t&t|f&t&f&t|t&t", "t&t&t|f&t&t&t&f", "f|f&t&t&t&t|f&f&t|t|f|t&f|t&f|f&f|t", "t&t|f|t|f|t&f&t|f|t|t|f|t&t&f&t|t", "t|t|f|f|f|t|t&f|f|f&t|t&f", "f&f|t&f&f|t|t&f&t|t|f&f|f", "f|f", "t&f&t&t|t&t&t&f|t&t&t", "f|f|f|f&f&t|t|f|t", "f|t|f|t&f|t|f&f&t&f|t|f&t&t|t", "t&t|f|t|f|f|t&f", "t|f&t|f&f|t|f|t|t|f&f|f&f|f", "f&t&f&t|t", "f&f|f|t&f|t&f|f|f|f|t&t", "f|f&f|f&t|f&f&t|t", "t|t|t&f|t|t|f|f|t", "t|f&f|t|f&t", "f|f&t|t&t&t|t|f&f|t&f|t&f&t&f|t|t|t|f", "t|f&f&f&t", "f&f", "t|t|f&t&f|f|t|t|f&f|f&f|t", "f&f", "t|f|f|t&t|t&t&t&f", "f&f", "f&t|t&f&f", "f&t&t|t&f|f&t|t|f|f&f|t&f", "t&f&f|t|f&f&f|t&t|t&f&f&t|t|f", "f&t&f&f&f&t|t&t&t|f&t&f&f&f|t", "f&t|t|t|t|f", "t&f|f&t&t|t|t&t|f&f|t|t|f&f&t&t|t&f", "t|t|t|f|t&f|f&t&t&t&t|f|f", "t&f|f|t&f&t&t&t|t&t|f&f&t&t&f&t|f&f", "t|t|t&f", "t|f|f|f&t&t|t&f", "t|f&t&f|f|t&f&t|f&t&t|f&f|t", "f|f&f|t&t|f|t|t", "f|t|t", "t|t"]
 
 prop_forLoopIndex :: Property
 prop_forLoopIndex = forAll (choose (-1000, 1000)) $ \start ->
@@ -123,10 +167,6 @@ prop_syllables x = syllables x == R1.syllables x
 -- GPSB 2
 prop_basement x = basement x == R2.basement x
 
-prop_vecDistance xs ys = abs (vecDistance xs ys - R2.vecDistance xs ys) < 1e-6
-
-prop_twitter xs = twitter xs == R2.twitter xs
-
 prop_bowling xs = forAll (choose (0, length bowlingData - 1)) $ \ix ->
                      let (a, b) = bowlingData !! ix
                       in bowling a == b
@@ -142,6 +182,63 @@ prop_cutVector x = let y = map getPositive x
                        d1 = abs (sum xs - sum ys)
                        d2 = abs (sum zs - sum ws)
                    in d1==d2
+
+prop_findPair x y = findPair x y == R2.findPair x y
+
+prop_fizzBuzz x = fizzBuzz (getPositive x) == R2.fizzBuzz (getPositive x)
+
+prop_fuelCost x = fuelCost x == R2.fuelCost x
+
+prop_gcd x y = gcd' (getPositive x) (getPositive y) == R2.gcd' (getPositive x) (getPositive y)
+
+prop_indicesSubStr = forAll (choose (0, length subsStrdata - 1)) $ \ix ->
+                              let [a, b] = subsStrdata !! ix
+                              in indicesSubStr a b == R2.indicesSubStr a b
+
+prop_leaders xs = let ys = map getPositive xs
+                  in leaders ys == R2.leaders ys
+
+prop_luhn = forAll (vectorOf 16 (choose (0, 9))) $ \xs -> luhn xs == R2.luhn xs
+
+prop_masterMind = forAll (choose (0, length masterMindData - 1)) $ \ix ->
+                     let [a, b] = masterMindData !! ix
+                     in masterMind a b == R2.masterMind a b
+
+prop_middleChar x = middleChar x == R2.middleChar x
+
+prop_pairedDigits = forAll (choose (0, 20)) $ \ix ->
+                    forAll (vectorOf ix (choose (0, 9 :: Int))) $ \xs ->
+                      let ys = concatMap show xs  :: String
+                      in pairedDigits ys == R2.pairedDigits ys
+
+prop_shoppingList xs ys = abs (shoppingList xs ys - R2.shoppingList xs ys) < 1e-6
+
+
+prop_snowDay = forAll (choose (0,20)) $ \ix ->
+               forAll (choose (0, 20)) $ \iy ->
+               forAll (choose (0, 10)) $ \iz ->
+               forAll (choose (0, 1)) $ \iw ->
+                 abs (snowDay ix iy iz iw - R2.snowDay ix iy iz iw) < 1e-6
+
+prop_solveBool = forAll (choose (0, length booleanData - 1)) $ \ix ->
+                   solveBool (booleanData !! ix) == R2.solveBool (booleanData !! ix)
+
+prop_spinWords = forAll (choose (2, 9)) $ \n ->
+                 forAll (choose (2, 20)) $ \m ->
+                 forAll (vectorOf m (vectorOf n (choose ('a', 'z')))) $ \xs ->
+                 spinWords (unwords xs) == R2.spinWords (unwords xs)
+
+prop_squareDigits x = squareDigits (getPositive x) == R2.squareDigits (getPositive x)
+
+prop_subsCipher = let a = ['a' .. 'z']
+                    in forAll (shuffle a) $ \b ->
+                       forAll (choose (4, 100)) $ \n ->
+                       forAll (vectorOf n (choose ('a', 'z'))) $ \x ->
+                         subsCipher a b x == R2.subsCipher a b x
+
+prop_twitter xs = twitter xs == R2.twitter xs
+
+prop_vecDistance xs ys = abs (vecDistance xs ys - R2.vecDistance xs ys) < 1e-6
 
 return []
 check = $quickCheckAll

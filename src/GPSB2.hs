@@ -4,6 +4,7 @@ module GPSB2 where
 
 import Data.Char ( digitToInt, toUpper, toLower )
 import Data.List ( tails, findIndex )
+import qualified Data.Map.Strict as M
 import Rec
 import Debug.Trace ( trace )
 import GPSB (xWordLines)
@@ -90,63 +91,188 @@ cutVector xs = accu st alg (fromList xs) 0
                                                     else (xs, x:ys)
                                   else (x:xs, ys)
 
-{-
+
 diceGame :: Int -> Int -> Double
-diceGame = undefined
+diceGame n m = 1.0 - (fromIntegral m + 1) / (2 * fromIntegral n)
+
 
 findPair :: [Int] -> Int -> (Int, Int)
-findPair = undefined
+findPair xs n = histo alg (fromList xs)
+  where
+    alg NilF = (0, 0)
+    alg (ConsF x table) = case findElem (n - x) table of
+                               Nothing -> extract table
+                               Just y -> (x, y)
+    findElem x (acc :< NilF) = Nothing
+    findElem x (acc :< ConsF y tbl) = if x == y then Just x else findElem x tbl
 
 fizzBuzz :: Int -> [String]
-fizzBuzz = undefined
+fizzBuzz = reverse . toList . ana coalg
+  where
+    coalg 0 = NilF
+    coalg x
+         | x `mod` 3 == 0 && x `mod` 5 == 0 = ConsF "FizzBuzz" (x-1)
+         | x `mod` 3 == 0 = ConsF "Fizz" (x-1)
+         | x `mod` 5 == 0 = ConsF "Buzz" (x-1)
+         | otherwise = ConsF (show x) (x-1)
 
 fuelCost :: [Int] -> Int
-fuelCost = undefined
+fuelCost = cata alg . fromList
+  where
+    alg NilF = 0
+    alg (ConsF x xs) = (x `div` 3 - 2) + xs
 
-gcd :: Int -> Int -> Int
-gcd = undefined
+gcd' :: Int -> Int -> Int
+gcd' x y = hylo alg coalg (x, y)
+  where
+    alg (Value x) = x
+    alg (Delayed x) = x
+
+    coalg (a, b) = case a `mod` b of
+                     0 -> Value b
+                     m -> Delayed (b, m)
 
 indicesSubStr :: String -> String -> [Int]
-indicesSubStr = undefined
+indicesSubStr xs target = histo alg (fromIList xs)
+  where
+    alg INilF = []
+    alg (IConsF ix x table) = if target == (x : takeTbl (length target - 1) table)
+                                 then ix : extract table
+                                 else extract table
+    takeTbl 0 _ = []
+    takeTbl n (_ :< INilF) = []
+    takeTbl n (_ :< IConsF _ x tbl) = x : takeTbl (n-1) tbl
 
 leaders :: [Int] -> [Int]
-leaders = undefined
+leaders = histo alg . fromList
+  where
+    alg NilF = []
+    alg (ConsF x table) = if all (<=x) (tbl2list table)
+                             then x : extract table
+                             else extract table
+
+    tbl2list (_ :< NilF) = []
+    tbl2list (_ :< ConsF x tbl) = x : tbl2list tbl
+
 
 luhn :: [Int] -> Int
-luhn = undefined
+luhn = cata alg . fromIList
+  where
+    alg INilF = 0
+    alg (IConsF ix x xs) = if ix `mod` 2 == 0
+                              then x + xs
+                              else let y = 2*x
+                                   in if y >= 10
+                                         then y - 9 + xs
+                                         else y + xs
+
 
 masterMind :: String -> String -> (Int, Int)
-masterMind = undefined
+masterMind code guess = let (f1,f2) = mutu alg1 alg2  in (f1 (fromList guess) code, f2 (fromList guess) code)
+  where
+    alg1 NilF ys = 0
+    alg1 (ConsF x xs) ys = if (not.null) ys && x == (head ys)
+                              then 1 + (fst xs) (tail ys)
+                              else (fst xs (tail ys))
+    alg2 NilF ys = 0
+    alg2 (ConsF x xs) ys = if x `elem` ys then 1 + (snd xs ys) else (snd xs ys)
+
 
 middleChar :: String -> String
-middleChar = undefined
+middleChar xs = histo alg (fromIList xs)
+  where
+    alg INilF = []
+    alg (IConsF ix x table) = let sz = length (tbl2list table)
+                              in if sz == ix
+                                 then [x]
+                                 else if sz > ix && null (extract table)
+                                        then [x, nextElem' table]
+                                        else extract table
+    tbl2list (_ :< INilF) = []
+    tbl2list (_ :< IConsF ix x tbl) = x : tbl2list tbl
+    nextElem' (_ :< INilF) = undefined
+    nextElem' (_ :< IConsF ix x tbl) = x
 
 pairedDigits :: String -> Int
-pairedDigits = undefined
+pairedDigits = histo alg . fromList
+  where
+    alg NilF = 0
+    alg (ConsF x table) = case nextElem table of
+                               Nothing -> extract table
+                               Just y  -> if digitToInt x == digitToInt y then digitToInt x + extract table else extract table
 
 shoppingList :: [Double] -> [Double] -> Double
-shoppingList = undefined
+shoppingList xs ys = cata alg (fromList xs) ys
+  where
+    alg NilF zs = 0
+    alg (ConsF x f) zs = if null zs
+                             then f zs
+                             else x - x * head zs / 100 + f (tail zs)
+
 
 snowDay :: Int -> Double -> Double -> Double -> Double
-snowDay = undefined
+snowDay hours snow rate melt = snow*(melt ^ hours) + rate * melt * (melt^hours - 1) / (melt - 1)
+
 
 solveBool :: String -> Bool
-solveBool = undefined
-
-spinWords :: String -> String
-spinWords = undefined
-
-squareDigits :: Int -> String
-squareDigits = reverse . concat . toList . ana coalg
+solveBool = fromRight . cata alg . fromList . reverse
   where
+    fromRight (Right x) = x
+
+    alg NilF = Right False
+    alg (ConsF x xs) = case x of
+                          't' -> case xs of
+                                    Right _ -> Right True
+                                    Left f  -> Right (f True)
+                          'f' -> case xs of
+                                      Right _ -> Right False
+                                      Left f -> Right (f False)
+                          '|' -> case xs of
+                                      Right v -> Left (v ||)
+                                      Left  f -> Left f
+                          '&' -> case xs of
+                                      Right v -> Left (v &&)
+                                      Left  f -> Left f
+
+-- can do it without unwords . words, but meh
+spinWords :: String -> String
+spinWords xs = accu st alg (fromList xs) ""
+  where
+    st NilF s = NilF
+    st (ConsF x xs) s = ConsF x (xs, if (not.null) s && head s == ' ' then [x] else (x:s))
+    alg NilF s = if length s >= 5 then s else reverse s
+    alg (ConsF x xs) s = if (not.null) s && head s == ' '
+                          then
+                             if length s >= 6
+                                then tail s <> (' ' : xs)
+                                else reverse (tail s) <> (' ' : xs)
+                          else xs
+    {-
+  unwords . cata alg . fromList . words
+  where
+    alg NilF = []
+    alg (ConsF x xs) = if length x >= 5
+                          then reverse x : xs
+                          else x : xs
+                          -}
+squareDigits :: Int -> String
+squareDigits = hylo alg coalg
+  where
+    alg NilF = "0"
+    alg (ConsF x xs) = if xs == "0" then show x else xs <> show x
+
     coalg x = case x of
                 0 -> NilF
-                y -> ConsF (show $ (y `mod` 10) ^ 2) (y `div` 10)
+                y -> ConsF ((y `mod` 10) ^ 2) (y `div` 10)
 
 subsCipher :: String -> String -> String -> String
-subsCipher = undefined
-
--}
+subsCipher xs ys code = cata alg (fromList xs) ys code
+  where
+    alg NilF ys zs = map toLower zs
+    alg (ConsF x xs) ys zs = if null ys
+                               then zs
+                               else xs (tail ys) (replace x (head ys) zs)
+    replace x y xs = map (\z -> if z == x then toUpper y else z) xs
 
 twitter :: String -> String
 twitter xs = cata alg (fromIList xs)
