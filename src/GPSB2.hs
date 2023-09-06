@@ -10,15 +10,12 @@ import Debug.Trace ( trace )
 import GPSB (xWordLines)
 
 basement :: [Int] -> Maybe Int
-basement xs = cata alg2 $ cata alg (fromIList xs)
+basement xs = accu st alg (fromIList xs) 0
   where
-    alg2 INilF = Nothing
-    alg2 (IConsF ix x xs) = if x < 0 then Just ix else xs
-
-    alg INilF = Fix INilF
-    alg (IConsF ix x xs) = case xs of
-                              Fix INilF -> icons x xs
-                              Fix (IConsF iy y ys) -> icons (x+y) xs
+    st INilF s = INilF
+    st (IConsF ix x xs) s = IConsF ix x (xs, s+x)
+    alg INilF s = Nothing
+    alg (IConsF ix x xs) s = if x + s < 0 then Just ix else xs
 
 bowling :: String -> Int
 bowling = snd . histo alg . fromList . reverse
@@ -107,14 +104,14 @@ findPair xs n = histo alg (fromList xs)
     findElem x (acc :< ConsF y tbl) = if x == y then Just x else findElem x tbl
 
 fizzBuzz :: Int -> [String]
-fizzBuzz = reverse . toList . ana coalg
+fizzBuzz n = toList (ana coalg 1)
   where
-    coalg 0 = NilF
     coalg x
-         | x `mod` 3 == 0 && x `mod` 5 == 0 = ConsF "FizzBuzz" (x-1)
-         | x `mod` 3 == 0 = ConsF "Fizz" (x-1)
-         | x `mod` 5 == 0 = ConsF "Buzz" (x-1)
-         | otherwise = ConsF (show x) (x-1)
+         | x > n = NilF
+         | x `mod` 3 == 0 && x `mod` 5 == 0 = ConsF "FizzBuzz" (x+1)
+         | x `mod` 3 == 0 = ConsF "Fizz" (x+1)
+         | x `mod` 5 == 0 = ConsF "Buzz" (x+1)
+         | otherwise = ConsF (show x) (x+1)
 
 fuelCost :: [Int] -> Int
 fuelCost = cata alg . fromList

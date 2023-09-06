@@ -15,13 +15,13 @@
 module Reference.GPSB2 where
 
 import Data.Char (digitToInt, toUpper, toLower)
-import Data.List ( tails, findIndex )
+import Data.List ( inits, findIndex )
 import qualified Data.Map.Strict as M
 import Rec
 
 -- basement
 basement :: [Int] -> Maybe Int
-basement = findIndex (<0) . map sum . tails
+basement = findIndex (<0) . map sum . tail . inits
 
 -- bouncing balls *
 bouncingBalls :: Double -> Double -> Int -> Double
