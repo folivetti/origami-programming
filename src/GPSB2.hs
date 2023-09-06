@@ -66,17 +66,31 @@ camelCase = histo alg . fromList
                                               _ -> toUpper x : toLower (head acc) : tail acc 
 
 
-{-
-coinSums :: Int -> (Int, [Int])
-coinSums n = hylo alg coalg n
+coinSums :: Int -> [Int]
+coinSums n = cata alg (fromList [25, 10, 5, 1]) n
   where
-    coins = [25, 10, 5, 1]
-    alg 0 = NilF
-    alg x = ConsF 
+    alg :: ListF Int (Int -> [Int]) -> (Int -> [Int])
+    alg NilF y = []
+    alg (ConsF x xs) y = let (q, r) = y `divMod` x in (q : xs r)
+
 
 cutVector :: [Int] -> ([Int], [Int])
-cutVector = undefined
+cutVector xs = accu st alg (fromList xs) 0
+  where
+    st NilF s = NilF
+    st (ConsF x xs) s = ConsF x (xs, s+x)
+    alg NilF s = ([], [])
+    alg (ConsF x (xs, ys)) s = if null xs
+                                  then if null ys
+                                         then if s == 0 then ([x], []) else ([], [x])
+                                         else let d1 = abs (s + x - sum ys)
+                                                  d2 = abs (s - x  - sum ys)
+                                              in if d1 <= d2
+                                                    then (x:xs, ys)
+                                                    else (xs, x:ys)
+                                  else (x:xs, ys)
 
+{-
 diceGame :: Int -> Int -> Double
 diceGame = undefined
 

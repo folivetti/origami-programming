@@ -66,12 +66,12 @@ camelCase = splitStr
                          else capitalize ys <> splitStr (tail zs)
 
 
-coinSums :: Int -> (Int, [Int])
-coinSums x = go x (0, []) coins
+coinSums :: Int -> [Int]
+coinSums x = reverse $ go x [] coins
   where
     coins = [25, 10, 5, 1]
     go _ res [] = res
-    go y (tot, amounts) (a:as) = let (q, r) = y `divMod` a in go q (tot + r, r : amounts) as
+    go y amounts (a:as) = let (q, r) = y `divMod` a in go r (q : amounts) as
 
 cutVector :: [Int] -> ([Int], [Int])
 cutVector = go []
@@ -81,7 +81,8 @@ cutVector = go []
     go xs ys
       | diff (xs, ys) < diff minGo = (xs, ys)
       | otherwise = minGo
-      where minGo = go (head ys : xs) (tail ys)
+      where
+        minGo = go (xs <> [head ys]) (tail ys)
 
 diceGame :: Int -> Int -> Double
 diceGame n m = 1.0 - (fromIntegral m + 1) / (2 * fromIntegral n)

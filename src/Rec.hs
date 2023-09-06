@@ -67,6 +67,11 @@ accu :: Functor f => (forall x. f x -> p -> f (x, p)) -> (f a -> p -> a) -> Fix 
 accu st alg (Fix t) p = alg (fmap (uncurry (accu st alg)) (st t p)) p
 -- stack, stack, then unstack
 
+accuHisto :: Functor f => (forall x. f x -> p -> f (x, p)) -> (f (Cofree f a) -> p -> a) -> Fix f -> p -> a
+accuHisto st alg t p = extract $ accu st alg' t p
+  where
+    alg' x s = alg x s :< x
+
 -- histo, futu, chrono, dyno may have a different stacking behavior
 histo :: Functor f => (f (Cofree f a) -> a) -> Fix f -> a
 histo alg = extract . cata (\x -> alg x :< x)

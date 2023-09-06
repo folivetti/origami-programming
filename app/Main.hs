@@ -134,6 +134,15 @@ prop_bowling xs = forAll (choose (0, length bowlingData - 1)) $ \ix ->
 
 prop_camelcase xs = camelCase xs == R2.camelCase xs 
 
+prop_coinSums x = coinSums x == R2.coinSums x
+
+prop_cutVector x = let y = map getPositive x
+                       (xs, ys) = cutVector y
+                       (zs, ws) = R2.cutVector y
+                       d1 = abs (sum xs - sum ys)
+                       d2 = abs (sum zs - sum ws)
+                   in d1==d2
+
 return []
 check = $quickCheckAll
 
