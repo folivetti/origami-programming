@@ -8,6 +8,7 @@ import qualified Data.Map.Strict as M
 import Rec
 import Debug.Trace ( trace )
 import GPSB (xWordLines)
+import Debug.Trace
 
 basement :: [Int] -> Maybe Int
 basement xs = accu st alg (fromIList xs) 0
@@ -16,6 +17,24 @@ basement xs = accu st alg (fromIList xs) 0
     st (IConsF ix x xs) s = IConsF ix x (xs, s+x)
     alg INilF s = Nothing
     alg (IConsF ix x xs) s = if x + s < 0 then Just ix else xs
+
+bouncingBallsNoScheme :: Double -> Double -> Int -> Double
+bouncingBallsNoScheme start afterBounce nBounces = 
+  ((start + (2 * ((afterBounce * ((bouncinessIndex ** (fromIntegral nBounces)) - 1)) / (bouncinessIndex - 1)))) - (start * (bouncinessIndex ** (fromIntegral nBounces))))
+  where
+    bouncinessIndex = afterBounce / start
+
+bouncingBallsHylo :: Double -> Double -> Int -> Double
+bouncingBallsHylo start afterBounce nBounces = hylo alg coalg 0 where
+
+  coalg seed = if (seed > nBounces) then NilF 
+    else ConsF 
+      (start * (bouncinessIndex ** (fromIntegral seed))) 
+      (succ seed)
+
+  alg NilF = (0.0 - (start + (bouncinessIndex ** (fromIntegral nBounces))))
+  alg (ConsF x acc) = ((2.0 * x) + acc)
+  bouncinessIndex = afterBounce / start
 
 bowling :: String -> Int
 bowling = snd . histo alg . fromList . reverse
@@ -54,22 +73,30 @@ camelCase = histo alg . fromList
     alg NilF = ""
     alg (ConsF x table) = let acc = extract table
                            in if x == '-'
-                                then if null acc
-                                       then ""
-                                       else acc
-                                else if null acc 
-                                       then [toUpper x]
-                                       else case nextElem table of 
-                                              Just '-' -> toUpper x : acc 
-                                              _ -> toUpper x : toLower (head acc) : tail acc 
+                                then toUpper (head acc) : tail acc
+                                else x:acc
+                          where 
+                            acc = extract table
 
-
-coinSums :: Int -> [Int]
-coinSums n = cata alg (fromList [25, 10, 5, 1]) n
+camelCaseCata :: String -> String
+camelCaseCata = cata alg . fromList
   where
-    alg :: ListF Int (Int -> [Int]) -> (Int -> [Int])
-    alg NilF y = []
-    alg (ConsF x xs) y = let (q, r) = y `divMod` x in (q : xs r)
+    alg NilF = ""
+    alg (ConsF x acc) = if x == '-' then toUpper (head acc) : tail acc else x:acc
+
+tbl2list (_ :< NilF) = []
+tbl2list (_ :< ConsF x tbl) = x : tbl2list tbl
+
+counter :: [Int] -> [Int]
+counter = histo alg . fromList
+  where
+    alg NilF = []
+    alg (ConsF x table) = (length(tbl2list table)):(extract table)
+
+coinSums :: [Int] -> Int -> [Int]
+coinSums coinValues n = cata alg (fromList coinValues) n where
+  alg NilF ys = []
+  alg (ConsF x f) ys = (div ys x) : (f $ (mod ys x))
 
 
 cutVector :: [Int] -> ([Int], [Int])
@@ -174,6 +201,15 @@ masterMind code guess = let (f1,f2) = mutu alg1 alg2  in (f1 (fromList guess) co
     alg2 NilF ys = 0
     alg2 (ConsF x xs) ys = if x `elem` ys then 1 + (snd xs ys) else (snd xs ys)
 
+masterMindCurriedCata :: String -> String -> (Int, Int)
+masterMindCurriedCata code guess = cata alg (fromList code) guess where
+  alg INilF ys = (0, 0)
+  alg (IConsF i x f) ys = (rightColor , rightPosition)
+    where
+      rightColor
+        | length ys == 4 = (if ((elem x ys) && ((head (drop i ys)) /= x)) then 1 else 0) + fst (f $ ys)
+        | otherwise = 0
+      rightPosition = (if ((not (null ys)) && ((head ys) == x)) then 1 else 0) + snd (f $ (tail ys))
 
 middleChar :: String -> String
 middleChar xs = histo alg (fromIList xs)

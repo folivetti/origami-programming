@@ -53,23 +53,14 @@ X/ = 20
 X23 = 10 + 2 + 3 + 2 + 3
 -}
 camelCase :: String -> String
-camelCase = splitStr
+camelCase [] = []
+camelCase ('-':x:xs) = toUpper x : camelCase xs
+camelCase (x:xs) = x : camelCase xs
+
+
+coinSums :: [Int] -> Int -> [Int]
+coinSums coins x = reverse $ go x [] coins
   where
-    capitalize "" = ""
-    capitalize (x:xs) = toUpper x : map toLower xs 
-
-    splitStr "" = ""
-    splitStr xs = let ys = takeWhile (/= '-') xs 
-                      zs = dropWhile (/= '-') xs
-                   in if null zs 
-                         then capitalize ys 
-                         else capitalize ys <> splitStr (tail zs)
-
-
-coinSums :: Int -> [Int]
-coinSums x = reverse $ go x [] coins
-  where
-    coins = [25, 10, 5, 1]
     go _ res [] = res
     go y amounts (a:as) = let (q, r) = y `divMod` a in go r (q : amounts) as
 
