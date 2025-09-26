@@ -52,7 +52,28 @@ import Debug.Trace ( trace )
 import qualified Data.Map.Strict as M
 import Data.Bifunctor (bimap, first, second)
 
--- Catamorphisms
+-- * No Schemes
+
+compareStringLengths :: String -> String -> String -> Bool
+compareStringLengths n1 n2 n3 = length n1 < length n2 && length n2 < length n3
+
+-- median = sum - smallest - largest
+median :: Int -> Int -> Int -> Int
+median x y z = (x + y + z) - (min x (min y z)) - (max x (max y z))
+
+mirrorImageNoScheme :: [Int] -> [Int] -> Bool
+mirrorImageNoScheme xs ys = xs == reverse ys
+
+numberIO :: Float -> Int -> Float
+numberIO f n = f + fromIntegral n
+
+smallOrLarge :: Int -> String
+smallOrLarge x
+  | x < 1000 = "small" 
+  | x >= 2000 = "large"
+  | otherwise = ""
+
+-- * Catamorphisms
 
 -- double letters
 doubleLetters :: String -> String
@@ -85,7 +106,7 @@ countOdds = cata alg . fromList
     alg NilF = 0
     alg (ConsF x xs) = xs + mod x 2
 
--- Mirror image
+-- Mirror image when there's no reverse or ==
 mirrorImage :: [Int] -> ([Int] -> Bool)
 mirrorImage = cata alg . fromList
   where
@@ -142,7 +163,7 @@ syllables = cata alg . fromList
                           | otherwise               -> xs
 
 
--- * Accumorphisms
+-- * Accumulations
 
 -- string differences
 stringDiffs :: String -> (String -> [(Int, (Char, Char))])
