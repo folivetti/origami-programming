@@ -171,10 +171,13 @@ prop_bowling xs = forAll (choose (0, length bowlingData - 1)) $ \ix ->
                      let (a, b) = bowlingData !! ix
                       in bowling a == b
 
+prop_camelcase = forAll kebabGen $ \xs -> camelCase xs == R2.camelCase xs 
+  where
+    kebabGen = do
+      segments <- listOf1 (listOf1 (elements ['a'..'z']))
+      return $ foldr1 (\a b -> a ++ "-" ++ b) segments
 
-prop_camelcase xs = camelCase xs == R2.camelCase xs 
-
-prop_coinSums x = coinSums x == R2.coinSums x
+prop_coinSums x = coinSums coins x == R2.coinSums coins x where coins = [25, 10, 5, 1]
 
 prop_cutVector x = let y = map getPositive x
                        (xs, ys) = cutVector y
