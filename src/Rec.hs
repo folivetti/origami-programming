@@ -1,8 +1,13 @@
 {-# language RankNTypes, DeriveFunctor #-}
 module Rec where
 
+import qualified Data.Set as S
+import qualified Data.Map.Strict as M
+
 data ListF a b = NilF | ConsF a b deriving Functor
 data IListF a b = INilF | IConsF Int a b deriving Functor
+data SetF a b = SNilF | SConsF a b deriving Functor
+data MapF k v b = MNilF | MConsF k v b deriving Functor
 data NatF a = ZeroF | SuccF a deriving Functor
 data StreamF a b = StreamF a b deriving Functor
 data TreeF a b = LeafF | NodeF b a b deriving Functor
@@ -109,6 +114,18 @@ fromIList xs = go (zip [0..] xs)
 toIList :: Fix (IListF a) -> [a]
 toIList (Fix INilF) = []
 toIList (Fix (IConsF ix x xs)) = x : toIList xs
+
+fromSet :: Ord a => S.Set a -> Fix (SetF a)
+fromSet set = go (S.toList set)
+  where
+    go [] = Fix SNilF
+    go (x:xs) = Fix (SConsF x (go xs))
+
+fromMap :: Ord k => M.Map k v -> Fix (MapF k v)
+fromMap m = go (M.toList m)
+  where
+    go [] = Fix MNilF
+    go ((k,v):xs) = Fix (MConsF k v (go xs))
 
 icons :: a -> Fix (IListF a) -> Fix (IListF a)
 icons x xs = fromIList (x : toIList xs)
